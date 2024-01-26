@@ -18,6 +18,12 @@ Data Exploration: Utilize the Recipe Search API (API URL: https://api.edamam.com
 
 ETL Workflows: Implement Extract, Transform, Load (ETL) workflows to ingest data from the API. The original dataset(s) will undergo transformations to ensure consistency and relevance to our analysis.
 
+Database Setup
+Create an SQLite database to store and manage the transformed recipe data.
+Define the database schema with at least two tables: Recipes and CO2 Emissions.
+Recipes Table: Stores information about various recipes.
+CO2 Emissions Table: Stores data related to the carbon emissions associated with each recipe.
+
 Database Integration: Utilize SQLite as the database technology to store and manage the transformed recipe data. SQLite offers simplicity, portability, and ease of use, making it ideal for our data exploration and analysis needs.
 
 Collaborative Analysis: Collaborate with team members to perform exploratory data analysis on the recipe dataset. Analyze patterns, trends, and relationships within the data to derive meaningful insights.
