@@ -43,7 +43,8 @@ def welcome():
     """List all available api routes."""
     return (
         f"Available Routes:<br/>"
-        f"/api/v1.0/all_recipes"
+        f"/api/v1.0/all_recipes<br/>"
+        f"/api/v1.0/recipe_details"
     )
 
 @app.route("/api/v1.0/all_recipes")
@@ -70,6 +71,34 @@ def all_recipes():
         return_recipes.append(recipe_dict)
 
     return jsonify(return_recipes)
+
+@app.route("/api/v1.0/recipe_details", methods=['GET'])
+def recipe_details():
+    # Get the recipe name from the query parameters
+    recipe_name = request.args.get('recipe_name')
+
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    
+    # Query the database to get details for the specified recipe name
+    sel = [recipes.recipe_name, co2.total_co2, recipes.total_time, recipes.cuisine_type]
+    results = session.query(*sel).filter(recipes.recipe_name == recipe_name).all()
+
+    session.close()
+
+    if not results:
+        return jsonify({"error": "Recipe not found"}), 404
+
+    # Extract information from the query results
+    recipe_name, total_co2, total_time, cuisine_type = results[0]
+
+    # Return the details as JSON
+    return jsonify({
+        "Name": recipe_name,
+        "CO2 Content": total_co2,
+        "Total Time per Recipe": total_time,
+        "Cuisine Type": cuisine_type
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
