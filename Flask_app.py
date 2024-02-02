@@ -44,8 +44,12 @@ def welcome():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/all_recipes<br/>"
+
         f"/api/v1.0/recipe_details<br/>"
         f"/api/v1.0/recipe_search"
+
+        f"/api/v1.0/recipe_details"
+
     )
 
 @app.route("/api/v1.0/all_recipes")
@@ -100,6 +104,7 @@ def recipe_details():
         "Total Time per Recipe": total_time,
         "Cuisine Type": cuisine_type
     })
+
 
 @app.route("/api/v1.0/recipe_search")
 def recipe_search():
@@ -170,6 +175,7 @@ def recipe_search():
         return_recipes.append(recipe_dict)
     
     return jsonify(return_recipes)
+
 
 
 if __name__ == '__main__':
