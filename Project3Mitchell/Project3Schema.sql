@@ -16,8 +16,9 @@ CREATE TABLE "CO2_Emissions" (
     "Total_CO2" NUMERIC(8, 2) NOT NULL,
     "Emissions_class" char(10) NOT NULL,
     "Diet_labels" char(50) NOT NULL,
-    "Number_of_ingredients" NUMERIC(8, 2) NOT NULL,
-    "Total_weight" NUMERIC(8, 2) NOT NULL
+    "Total_weight" NUMERIC(8, 2) NOT NULL,
+    "Number_of_ingredients" NUMERIC(8, 2) NOT NULL
+    
 );
 
 ALTER TABLE "Chicken_Recipes" ADD CONSTRAINT "fk_Chicken_Recipes_Recipe_ID"
