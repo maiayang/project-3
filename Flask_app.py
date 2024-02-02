@@ -48,8 +48,6 @@ def welcome():
         f"/api/v1.0/recipe_details<br/>"
         f"/api/v1.0/recipe_search"
 
-        f"/api/v1.0/recipe_details"
-
     )
 
 @app.route("/api/v1.0/all_recipes")
