@@ -44,7 +44,12 @@ def welcome():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/all_recipes<br/>"
+
+        f"/api/v1.0/recipe_details<br/>"
+        f"/api/v1.0/recipe_search"
+
         f"/api/v1.0/recipe_details"
+
     )
 
 @app.route("/api/v1.0/all_recipes")
@@ -99,6 +104,79 @@ def recipe_details():
         "Total Time per Recipe": total_time,
         "Cuisine Type": cuisine_type
     })
+
+
+@app.route("/api/v1.0/recipe_search")
+def recipe_search():
+
+    ### Code for user drop-down menu ###
+    root = tk.Tk()
+    root.title("Recipe Search")
+    root.geometry("400x300")
+    root.attributes('-topmost',True)
+    
+        # Add a label
+    label = tk.Label(root, text="Search Criteria")
+    label.pack(pady=10)  # Add padding to separate the label from other elements
+
+        # Create a StringVar to hold the selected option and store them in a variable
+    selected_option1 = tk.StringVar(value="Calories Per Serving")
+    selected_option2 = tk.StringVar(value="CO2 Emission")
+    # selected_option3 = tk.StringVar(value="Health Labels")
+        
+        #Access text from StringVar and store to a variable
+    selection1 = selected_option1.get()
+    selection2 = selected_option2.get()
+    # selection3 = selected_option3.get()
+
+        # Create the dropdown menu
+    calories_per_serving = ["<300", "<500", "<750", "<1000", "<1500"]
+    dropdown1 = tk.OptionMenu(root, selected_option1, *calories_per_serving)
+    dropdown1.pack(pady=10)
+
+    CO2_emission = ["<1000", "<5000", "<10000", "<15000"]
+    dropdown2 = tk.OptionMenu(root, selected_option2, *CO2_emission)
+    dropdown2.pack(pady=10)
+
+    # health_options = ["Vegan", "Sugar-Conscious", "Vegetarian"]
+    # dropdown3 = tk.OptionMenu(root, selected_option3, *health_options)
+    # dropdown3.pack(pady=10)
+
+        # Add a quit button
+    show_button = tk.Button(root, text="Submit", command=root.quit)
+    show_button.pack()
+
+    root.mainloop()
+    
+    root.destroy()
+
+    ### Code to return json ###
+        # Create our session (link) from Python to the DB
+    session=Session(engine)
+    sel=[recipes.recipe_name, recipes.cuisine_type, co2.diet_labels, recipes.calories_per_serving, recipes.source, co2.total_co2, co2.emission_class]
+
+    results=session.query(*sel).\
+        filter(recipes.calories_per_serving < selection1.replace('<','')).\
+        filter(co2.total_co2 < selection2.replace('<','')).all()
+        # filter(recipes.healthLabels == selection3).all()
+    
+    session.close()
+
+    return_recipes = []
+    for recipe_name, cuisine_type, diet_labels, calories_per_serving, source, total_co2, emission_class in results:
+        recipe_dict = {}
+        recipe_dict["Name"] = recipe_name
+        recipe_dict["Cuisine Type"] = cuisine_type
+        recipe_dict["Diet Labels"] = diet_labels
+        recipe_dict["Calories Per Serving"] = calories_per_serving
+        recipe_dict["Source"] = source
+        recipe_dict["Total CO2 Emission"] = total_co2
+        recipe_dict["Emission Class"] = emission_class
+        return_recipes.append(recipe_dict)
+    
+    return jsonify(return_recipes)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
