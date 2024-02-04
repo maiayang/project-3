@@ -1,0 +1,141 @@
+import numpy as np
+import sqlalchemy
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, func
+from flask import Flask, jsonify, request, render_template
+import matplotlib.pyplot as plt
+import os
+
+
+# Import the Tkinter library for GUI development
+import tkinter as tk
+from tkinter import *
+
+
+#################################################
+# Database Setup
+#################################################
+engine = create_engine("sqlite:///Resources/mydatabase2.sqlite")
+
+# reflect an existing database into a new model
+Base = automap_base()
+# reflect the tables
+Base.prepare(autoload_with=engine)
+
+# print(Base.classes.keys())
+
+# Save references to each table
+recipes=Base.classes.chicken_recipe_data
+co2=Base.classes.co2_data
+
+# Create our session (link) from Python to the DB
+session = Session(engine)
+
+#################################################
+# Flask Setup
+#################################################
+app = Flask(__name__)
+
+#################################################
+# Flask Routes
+#################################################
+@app.route("/")
+def welcome():
+    """List all available api routes."""
+    return (
+        f"Available Routes:<br/>"
+        f"/api/v1.0/all_recipes<br/>"
+        f"/api/v1.0/recipe_details<br/>"
+        f"/api/v1.0/average_calories_by_cuisine<br/>"
+        f"/api/v1.0/average_co2_by_diet"
+    )
+
+@app.route("/api/v1.0/all_recipes")
+def all_recipes():
+    # Create our session (link) from Python to the DB
+    session=Session(engine)
+    sel=[recipes.recipe_name, recipes.cuisine_type, co2.diet_labels, co2.total_co2, co2.emission_class , recipes.total_calories, recipes.total_time, recipes.source]
+
+    results=session.query(*sel).all()
+
+    session.close()
+
+    return_recipes = []
+    for recipe_name, cuisine_type, diet_labels, total_co2, emission_class, total_calories, total_time, source in results:
+        recipe_dict = {}
+        recipe_dict["Name"] = recipe_name
+        recipe_dict["Cuisine Type"] = cuisine_type
+        recipe_dict["Diet Labels"] = diet_labels
+        recipe_dict["Total CO2 Emission"] = total_co2
+        recipe_dict["Emission Class"] = emission_class
+        recipe_dict["Total Calories"] = total_calories
+        recipe_dict["Total Time"] = total_time
+        recipe_dict["Source"] = source
+        return_recipes.append(recipe_dict)
+
+    return jsonify(return_recipes)
+
+@app.route("/api/v1.0/recipe_details", methods=['GET'])
+def recipe_details():
+    # Get the recipe name from the query parameters
+    recipe_name = request.args.get('recipe_name')
+
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    
+    # Query the database to get details for the specified recipe name
+    sel = [recipes.recipe_name, co2.total_co2, recipes.total_time, recipes.cuisine_type]
+    results = session.query(*sel).filter(recipes.recipe_name == recipe_name).all()
+
+    session.close()
+
+    if not results:
+        return jsonify({"error": "Recipe not found"}), 404
+
+    # Extract information from the query results
+    recipe_name, total_co2, total_time, cuisine_type = results[0]
+
+    # Return the details as JSON
+    return jsonify({
+        "Name": recipe_name,
+        "CO2 Content": total_co2,
+        "Total Time per Recipe": total_time,
+        "Cuisine Type": cuisine_type
+    })
+
+@app.route("/api/v1.0/average_calories_by_cuisine", methods=['GET'])
+def average_calories_per_serving_by_cuisine():
+    # Create a session to interact with the database
+    session = Session(engine)
+
+    # Query the database to calculate the average calories per serving grouped by cuisine type
+    avg_calories_by_cuisine = session.query(recipes.cuisine_type, func.avg(recipes.calories_per_serving)) \
+        .group_by(recipes.cuisine_type) \
+        .all()
+
+    # Close the session
+    session.close()
+
+    # Return the result as JSON
+    return jsonify({"average_calories_by_cuisine": [{"cuisine_type": cuisine, "average_calories_per_serving": avg_calories} for cuisine, avg_calories in avg_calories_by_cuisine]})
+
+# New route for calculating average CO2 emissions grouped by diet type
+@app.route("/api/v1.0/average_co2_by_diet", methods=['GET'])
+def average_co2_by_diet():
+    # Create a session to interact with the database
+    session = Session(engine)
+
+    # Query the database to calculate the average CO2 emissions grouped by diet type
+    avg_co2_by_diet = session.query(co2.diet_labels, func.avg(co2.total_co2)) \
+        .group_by(co2.diet_labels) \
+        .all()
+
+    # Close the session
+    session.close()
+
+    # Return the result as JSON
+    return jsonify({"average_co2_by_diet": [{"diet_labels": diet, "average_co2": avg_co2} for diet, avg_co2 in avg_co2_by_diet]})
+
+if __name__ == '__main__':
+    app.run(debug=True)
