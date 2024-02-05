@@ -46,7 +46,9 @@ def welcome():
         f"/api/v1.0/all_recipes<br/>"
 
         f"/api/v1.0/recipe_details<br/>"
-        f"/api/v1.0/recipe_search"
+        f"/api/v1.0/recipe_search<br/>"
+        f"/api/v1.0/average_calories_by_cuisine<br/>"
+        f"/api/v1.0/average_co2_by_diet"
 
     )
 
@@ -174,7 +176,38 @@ def recipe_search():
     
     return jsonify(return_recipes)
 
+@app.route("/api/v1.0/average_calories_by_cuisine", methods=['GET'])
+def average_calories_per_serving_by_cuisine():
+    # Create a session to interact with the database
+    session = Session(engine)
 
+    # Query the database to calculate the average calories per serving grouped by cuisine type
+    avg_calories_by_cuisine = session.query(recipes.cuisine_type, func.avg(recipes.calories_per_serving)) \
+        .group_by(recipes.cuisine_type) \
+        .all()
+
+    # Close the session
+    session.close()
+
+    # Return the result as JSON
+    return jsonify({"average_calories_by_cuisine": [{"cuisine_type": cuisine, "average_calories_per_serving": avg_calories} for cuisine, avg_calories in avg_calories_by_cuisine]})
+
+# New route for calculating average CO2 emissions grouped by diet type
+@app.route("/api/v1.0/average_co2_by_diet", methods=['GET'])
+def average_co2_by_diet():
+    # Create a session to interact with the database
+    session = Session(engine)
+
+    # Query the database to calculate the average CO2 emissions grouped by diet type
+    avg_co2_by_diet = session.query(co2.diet_labels, func.avg(co2.total_co2)) \
+        .group_by(co2.diet_labels) \
+        .all()
+
+    # Close the session
+    session.close()
+
+    # Return the result as JSON
+    return jsonify({"average_co2_by_diet": [{"diet_labels": diet, "average_co2": avg_co2} for diet, avg_co2 in avg_co2_by_diet]})
 
 if __name__ == '__main__':
     app.run(debug=True)
