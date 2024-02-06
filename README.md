@@ -33,21 +33,7 @@ Data Accuracy and Integrity:
 The team is dedicated to maintaining the accuracy and integrity of the data throughout the ETL processes. This includes cross-checking information, handling outliers, and ensuring that insights derived from the data are reliable.
 
 ## Required Dependencies
-numpy
-pandas
-dask.dataframe
-dask.array
-dask.bag
-flask
-sqlite3
-sqlalchemy.ext.automap
-sqlalchemy.orm
-sqlalchemy
-requests
-json
-pprint
-tkinter
-dask.distributed
+numpy, pandas, dask.dataframe, dask.array, dask.bag, flask, sqlite3, sqlalchemy.ext.automap, sqlalchemy.orm, sqlalchemy, requests, json, pprint, tkinter, dask.distributed
 
 ## References for the data source
 
